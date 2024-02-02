@@ -1,12 +1,15 @@
 import React, { useState } from "react";
 import { StyleSheet, Text, TextInput, View, Pressable } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { MemoList } from "./memo_list";
+import { NavigationProp } from "@react-navigation/native";
 
-export const MemoArea: React.FC = () => {
+export const MemoArea: React.FC = ({ navigation }: any) => {
   const [value, setValue] = useState<string>("");
   const [memoTitle, setMemoTitle] = useState<string>("");
-  const [memoList, setMemoList] = useState<
-    { id: number; text: string; title: string }[]
-  >([]);
+  const [accept, setAccept] = useState("");
+  const [insert, setInsert] = useState();
+  const [memolists, setMemoLists] = useState<any[]>([]);
 
   const handleChange = (text: string) => {
     setValue(text);
@@ -17,19 +20,29 @@ export const MemoArea: React.FC = () => {
     console.log(text);
   };
 
-  const handleClick = () => {
+  const handleClick = async () => {
     const newMemo = { id: Math.random(), title: memoTitle, text: value };
+    const preMemo = await AsyncStorage.getItem("memoList");
+    let preMemoList = preMemo ? JSON.parse(preMemo) : [];
+
     if (value !== "") {
-      setMemoList((prevMemos) => [...prevMemos, newMemo]);
+      const updatedMemoList = [...preMemoList, newMemo];
+      await AsyncStorage.setItem("memoList", JSON.stringify(updatedMemoList));
+      setMemoLists(updatedMemoList);
       setValue("");
       setMemoTitle("");
+    }
+  };
+
+  const handleConfirm = (text: string, e: number) => {
+    if (e) {
+      setAccept(text);
     }
   };
 
   return (
     <>
       <View>
-        <Text>안녕</Text>
         <TextInput
           style={styles.textArea}
           onChangeText={handleChangeTitle}
@@ -41,35 +54,25 @@ export const MemoArea: React.FC = () => {
           value={value}
         ></TextInput>
         <Pressable onPress={handleClick}>
-          <Text>Press me</Text>
+          <Text>작성</Text>
         </Pressable>
       </View>
       <View>
-        {memoList.map((el) => (
-          <View key={el.id}>
-            <Text>{el.title}</Text>
-            <Text style={styles.noteArea}>
-              {el.text}
-              {el.id}
-            </Text>
-          </View>
-        ))}
+        <Pressable onPress={() => navigation.navigate("MemoList")}>
+          <Text>MemoList{memolists.length}</Text>
+        </Pressable>
+        <Pressable></Pressable>
       </View>
     </>
   );
 };
 const styles = StyleSheet.create({
-  textArea: {
-    backgroundColor: "#fff",
-    border: "1px solid#333",
-    width: "90%",
-    height: "100%",
-    margin: 0,
-    marginLeft: "auto",
-    marginRight: "auto",
+  textArea: {},
+  noteArea: {},
+  deleteModal: {
+    opacity: 1,
   },
-  noteArea: {
-    backgroundColor: "#fff",
-    border: "1px solid#333",
+  deleteBasic: {
+    opacity: 0,
   },
 });
