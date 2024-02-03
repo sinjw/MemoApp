@@ -44,19 +44,31 @@ export const MemoList = ({ navigation }: any) => {
       <Pressable onPress={handleDeleteAll}>
         <Text>전체삭제</Text>
       </Pressable>
-      {preMemoList ? (
+      {preMemoList.length !== 0 ? (
         preMemoList.map((el: memos) => (
-          <Pressable
-            onPress={() => navigation.navigate("MemoDetail", { id: el.id })}
-          >
-            <View style={styles.noteArea} key={el.id}>
-              <Text key={`${el.id}-title`}>{el.title}</Text>
-              <Text key={`${el.id}-text`}>{el.text}</Text>
-            </View>
-          </Pressable>
+          <>
+            <Pressable
+              onPress={() =>
+                navigation.navigate("MemoDetail", {
+                  id: el.id,
+                  text: el.text,
+                  title: el.title,
+                })
+              }
+            >
+              <View style={styles.noteArea} key={el.id}>
+                <Text key={`${el.id}-title`}>{el.title}</Text>
+                <Text key={`${el.id}-text`}>{el.text}</Text>
+              </View>
+            </Pressable>
+            <Text>메모작성</Text>
+          </>
         ))
       ) : (
-        <Text>내용이 없습니다</Text>
+        <>
+          <Text>내용이 없습니다</Text>
+          <Text>메모작성</Text>
+        </>
       )}
     </>
   );
