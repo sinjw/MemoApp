@@ -25,21 +25,7 @@ const MyCalendar = ({ navigation }: any) => {
     const month = today.toLocaleString("default", { month: "long" });
     setCurrentMonth(month);
   }, []);
-  useEffect(() => {
-    const loadCalendarData = async () => {
-      // 새로고침이 필요한 경우에만 데이터 다시 로드
-      if (reload) {
-        // 데이터 로드 처리
-        const preMemo = await AsyncStorage.getItem("memoList");
-        let preMemoList = preMemo ? JSON.parse(preMemo) : [];
-        // 이하 코드 생략
-        setReload(false); // 새로고침 상태 초기화
-      }
-    };
 
-    // 컴포넌트가 마운트될 때와 reload 상태가 변경될 때마다 데이터 로드 함수 실행
-    loadCalendarData();
-  }, [reload]);
   const handleClickEvent = (event: any) => {
     setSelectedEvent(event); // 선택된 이벤트 설정
     setModalVisible(true); // 모달 표시

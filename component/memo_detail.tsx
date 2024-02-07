@@ -1,7 +1,7 @@
 import { StyleSheet, Text, TextInput, View, Pressable } from "react-native";
 import { useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
+import { useNavigation } from "@react-navigation/native";
 export const MemoDetail = ({ route, navigation }: any) => {
   const {
     id,
@@ -33,10 +33,13 @@ export const MemoDetail = ({ route, navigation }: any) => {
       await AsyncStorage.setItem("memoList", JSON.stringify(updatedMemoList));
 
       setInsert(false);
-      navigation.navigate("MyCalendar", { reload: true });
+      navigation.navigate("MyCalendar");
     } catch (error) {
       console.error("Error:", error);
     }
+  };
+  const handleCancel = () => {
+    navigation.goBack(); // 이전 화면으로 이동
   };
 
   return (
@@ -44,11 +47,13 @@ export const MemoDetail = ({ route, navigation }: any) => {
       <View>
         {insert === false ? (
           <View>
+            <Pressable onPress={() => handleCancel()}>
+              <Text>뒤로가기</Text>
+            </Pressable>
             <Pressable onPress={() => handleInsertClick(true)}>
               <Text>수정</Text>
             </Pressable>
             <Text>삭제</Text>
-            <Text>취소</Text>
           </View>
         ) : (
           <View>
