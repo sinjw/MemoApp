@@ -6,10 +6,13 @@ import {
   Pressable,
   SafeAreaView,
   ScrollView,
+  Animated,
 } from "react-native";
-import { useRoute } from "@react-navigation/native";
+import { useSelector } from "react-redux";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useState, useEffect } from "react";
+import { RootState } from "../config";
+import { Dimensions } from "react-native";
 interface memos {
   id: number;
   title: string;
@@ -19,11 +22,13 @@ interface memos {
 
 export const MemoList = ({ navigation }: any) => {
   // 새로고침 상태 추가
+  const memoUpdate = useSelector((state: RootState) => state.upDate);
 
   const [pressList, setPressList] = useState(0);
   const [preMemoList, setPreMemoList] = useState([]);
   const [searchList, setSearchList] = useState([]);
   const [search, setSearch] = useState("");
+  const [openButtonMenu, setOpenButtonMenu] = useState<boolean>(false);
   const fetchData = async () => {
     try {
       const preMemo = await AsyncStorage.getItem("memoList");
@@ -36,17 +41,23 @@ export const MemoList = ({ navigation }: any) => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [memoUpdate]);
   const handleSearchChange = (e: string) => {
     setSearch(e);
     if (e) {
       const searchTerm = e.toUpperCase();
+      const regex = /^[ㄱ-ㅎㅏ-ㅣ가-힣ぁ-んァ-ヶa-zA-Z0-9]+$/;
 
-      const filteredMemos = preMemoList.filter(
-        (el: memos) =>
-          el.text.toUpperCase().includes(searchTerm) ||
-          el.title.toUpperCase().includes(searchTerm)
-      );
+      const filteredMemos = preMemoList.filter((el: memos) => {
+        const isTextMatchedRegex = regex.test(el.text);
+        const isTitleMatchedRegex = regex.test(el.title);
+        if (isTextMatchedRegex && isTitleMatchedRegex) {
+          return (
+            el.text.toUpperCase().includes(searchTerm) ||
+            el.title.toUpperCase().includes(searchTerm)
+          );
+        }
+      });
 
       setPreMemoList(filteredMemos);
       console.log(e);
@@ -65,34 +76,71 @@ export const MemoList = ({ navigation }: any) => {
       console.error("Error:", error);
     }
   };
-  const handleArray = (): any => {
-    const sortedMemoList = preMemoList.sort((a: memos, b: memos) => {
-      // a와 b의 날짜를 비교하여 최신 순으로 정렬
-      return new Date(a.day).getTime() - new Date(b.day).getTime();
+  const handlesort = (): any => {
+    const sortedMemoList = [...preMemoList].sort((a: memos, b: memos) => {
+      // 날짜를 문자열로 비교하여 최신 순으로 정렬
+      if (b.day < a.day) {
+        return 1;
+      }
+      if (b.day > a.day) {
+        return -1;
+      }
+      return 0;
     });
+
+    setPreMemoList(sortedMemoList);
+  };
+  const handleOpenButtonMenu = () => {
+    setOpenButtonMenu(!openButtonMenu);
   };
 
   return (
-    <ScrollView style={{ marginTop: 80 }}>
-      <SafeAreaView style={{ flex: 1, backgroundColor: "#F9EDBE" }}>
-        <View>
-          <Text style={{ textAlign: "center" }}>{preMemoList.length}</Text>
-          <Pressable onPress={handleArray}>
-            <Text style={{ textAlign: "right" }}>내림차순</Text>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#F9EDBE" }}>
+      <Pressable style={styles.buttonStyle} onPress={handleOpenButtonMenu}>
+        {openButtonMenu ? (
+          <Pressable
+            style={styles.moveMemoStyle}
+            onPress={() => navigation.navigate("Home")}
+          >
+            <Pressable
+              style={styles.moveCalendarStyle}
+              onPress={() =>
+                navigation.navigate("Calender", { dayinfo: preMemoList })
+              }
+            >
+              <Text>MyCalender</Text>
+            </Pressable>
           </Pressable>
-          <Pressable onPress={handleDeleteAll}>
+        ) : (
+          <></>
+        )}
+      </Pressable>
+
+      <ScrollView style={{ marginTop: 10 }}>
+        <View style={styles.MemoListHeader}>
+          <Text style={{ textAlign: "center", marginRight: 10 }}>
+            {preMemoList.length}
+          </Text>
+          <Pressable onPress={handlesort}>
+            <Text style={{ textAlign: "right", marginRight: 10 }}>
+              내림차순
+            </Text>
+          </Pressable>
+          <Pressable style={{ marginRight: 10 }} onPress={handleDeleteAll}>
             <Text>전체삭제</Text>
           </Pressable>
-          <Text>SEARCH</Text>
-          <Pressable onPress={() => navigation.navigate("Home")}>
-            <Text>+</Text>
-          </Pressable>
-          <TextInput
-            style={styles.noteArea}
-            onChangeText={handleSearchChange}
-          ></TextInput>
-          {preMemoList.length !== 0 ? (
-            preMemoList.map((el: memos) => (
+          <Text style={{ marginRight: 10 }}>SEARCH</Text>
+        </View>
+        <TextInput
+          style={styles.noteArea}
+          onChangeText={handleSearchChange}
+        ></TextInput>
+
+        {preMemoList.length !== 0 ? (
+          preMemoList
+            .slice()
+            .reverse()
+            .map((el: memos) => (
               <>
                 <Pressable
                   onPress={() =>
@@ -111,19 +159,24 @@ export const MemoList = ({ navigation }: any) => {
                 </Pressable>
               </>
             ))
-          ) : (
-            <>
-              <Text>내용이 없습니다</Text>
-              <Text>메모작성</Text>
-            </>
-          )}
-        </View>
-      </SafeAreaView>
-    </ScrollView>
+        ) : (
+          <>
+            <Text>내용이 없습니다</Text>
+            <Text>메모작성</Text>
+          </>
+        )}
+      </ScrollView>
+    </SafeAreaView>
   );
 };
-
+const screenHeight = Dimensions.get("window").height;
+const bottomPosition = (screenHeight * 20) / 100;
 const styles = StyleSheet.create({
+  MemoListHeader: {
+    backgroundColor: "lightblue",
+    flexDirection: "row",
+    marginTop: 40,
+  },
   MemoListView: {
     backgroundColor: "F9EBDE",
     flex: 1,
@@ -139,5 +192,33 @@ const styles = StyleSheet.create({
   },
   deleteBasic: {
     opacity: 0,
+  },
+  buttonStyle: {
+    backgroundColor: "red",
+    width: 50,
+    height: 50,
+    textAlign: "center",
+    zIndex: 10,
+    marginRight: 10,
+    position: "absolute",
+    bottom: bottomPosition,
+    right: 30,
+  },
+  buttonStyleComponents: {
+    left: 0,
+    bottom: 0,
+  },
+  moveMemoStyle: {
+    backgroundColor: "red",
+    width: 50,
+    height: 50,
+    left: -120,
+  },
+  moveCalendarStyle: {
+    backgroundColor: "red",
+    width: 50,
+    height: 50,
+    top: -120,
+    left: 120,
   },
 });

@@ -11,15 +11,15 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MemoList } from "./memo_list";
 import { NavigationProp } from "@react-navigation/native";
-
+import { useDispatch } from "react-redux";
+import { setUpdateMemo } from "../reducer/update-reducer"; // 리듀서 파일의 경로에 따라 import 경로가 달라질 수 있음
 export const MemoArea: React.FC = ({ navigation }: any) => {
   const [value, setValue] = useState<string>("");
   const [memoTitle, setMemoTitle] = useState<string>("");
   const [memoData, setMemoData] = useState([]);
   const [memoDate, setMemoDate] = useState("");
-  const [memoUpdate, setMemoUpdate] = useState(1);
   const [reload, setReload] = useState(false);
-
+  const dispatch = useDispatch();
   const handleChange = (text: string) => {
     setValue(text);
   };
@@ -55,12 +55,16 @@ export const MemoArea: React.FC = ({ navigation }: any) => {
     if (value !== "") {
       const updatedMemoList: any = [...preMemoList, newMemo];
       await AsyncStorage.setItem("memoList", JSON.stringify(updatedMemoList));
-      setMemoUpdate(Math.random());
+
+      dispatch(setUpdateMemo(newMemo.title));
       setValue("");
       setMemoTitle("");
       setReload(true);
       navigation.navigate("MemoList", { reload: reload });
     }
+  };
+  const handleCancel = () => {
+    navigation.goBack(); // 이전 화면으로 이동
   };
 
   return (
@@ -77,9 +81,14 @@ export const MemoArea: React.FC = ({ navigation }: any) => {
             style={{ alignItems: "center", marginBottom: 10 }}
             source={require("./../assets/MyMemoLogo.png")}
           />
-          <Pressable onPress={handleClick}>
-            <Text>작성</Text>
-          </Pressable>
+          <View style={{ flexDirection: "row" }}>
+            <Pressable onPress={handleClick}>
+              <Text style={{ marginRight: 10 }}>작성</Text>
+            </Pressable>
+            <Pressable onPress={handleCancel}>
+              <Text>취소</Text>
+            </Pressable>
+          </View>
         </View>
 
         <TextInput
@@ -94,11 +103,6 @@ export const MemoArea: React.FC = ({ navigation }: any) => {
         ></TextInput>
       </View>
       <View>
-        <Pressable
-          onPress={() => navigation.navigate("Calender", { dayinfo: memoData })}
-        >
-          <Text>MyCalender</Text>
-        </Pressable>
         <Pressable></Pressable>
       </View>
     </SafeAreaView>
