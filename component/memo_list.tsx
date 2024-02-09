@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { useSelector } from "react-redux";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { RootState } from "../config";
 import { Dimensions } from "react-native";
 interface memos {
@@ -23,17 +23,14 @@ interface memos {
 export const MemoList = ({ navigation }: any) => {
   // 새로고침 상태 추가
   const memoUpdate = useSelector((state: RootState) => state.upDate);
-
-  const [pressList, setPressList] = useState(0);
-  const [preMemoList, setPreMemoList] = useState([]);
-  const [searchList, setSearchList] = useState([]);
+  const [memoList, setMemoList] = useState([]);
   const [search, setSearch] = useState("");
   const [openButtonMenu, setOpenButtonMenu] = useState<boolean>(false);
   const fetchData = async () => {
     try {
       const preMemo = await AsyncStorage.getItem("memoList");
       const preMemoList = preMemo ? JSON.parse(preMemo) : [];
-      setPreMemoList(preMemoList);
+      setMemoList(preMemoList);
     } catch (error) {
       console.error("Error:", error);
     }
@@ -42,54 +39,36 @@ export const MemoList = ({ navigation }: any) => {
   useEffect(() => {
     fetchData();
   }, [memoUpdate]);
+
+  const searchResult = useMemo(() => {
+    const searchTerm = search.toUpperCase();
+    const regex = /^[ㄱ-ㅎㅏ-ㅣ가-힣ぁ-んァ-ヶa-zA-Z0-9]+$/;
+
+    const filteredMemos = memoList.filter((el: memos) => {
+      const isTextMatchedRegex = regex.test(el.text);
+      const isTitleMatchedRegex = regex.test(el.title);
+      if (isTextMatchedRegex && isTitleMatchedRegex) {
+        return (
+          el.text.toUpperCase().includes(searchTerm) ||
+          el.title.toUpperCase().includes(searchTerm)
+        );
+      }
+    });
+    return filteredMemos;
+  }, [search, memoList]);
   const handleSearchChange = (e: string) => {
     setSearch(e);
-    if (e) {
-      const searchTerm = e.toUpperCase();
-      const regex = /^[ㄱ-ㅎㅏ-ㅣ가-힣ぁ-んァ-ヶa-zA-Z0-9]+$/;
-
-      const filteredMemos = preMemoList.filter((el: memos) => {
-        const isTextMatchedRegex = regex.test(el.text);
-        const isTitleMatchedRegex = regex.test(el.title);
-        if (isTextMatchedRegex && isTitleMatchedRegex) {
-          return (
-            el.text.toUpperCase().includes(searchTerm) ||
-            el.title.toUpperCase().includes(searchTerm)
-          );
-        }
-      });
-
-      setPreMemoList(filteredMemos);
-      console.log(e);
-
-      console.log(filteredMemos);
-    } else {
-      fetchData();
-    }
   };
   const handleDeleteAll = async () => {
     try {
       await AsyncStorage.clear();
-      setPreMemoList([]);
+      // setPreMemoList([]);
       // 삭제 후에 UI를 업데이트하거나 다른 작업을 수행할 수 있습니다.
     } catch (error) {
       console.error("Error:", error);
     }
   };
-  const handlesort = (): any => {
-    const sortedMemoList = [...preMemoList].sort((a: memos, b: memos) => {
-      // 날짜를 문자열로 비교하여 최신 순으로 정렬
-      if (b.day < a.day) {
-        return 1;
-      }
-      if (b.day > a.day) {
-        return -1;
-      }
-      return 0;
-    });
 
-    setPreMemoList(sortedMemoList);
-  };
   const handleOpenButtonMenu = () => {
     setOpenButtonMenu(!openButtonMenu);
   };
@@ -105,7 +84,7 @@ export const MemoList = ({ navigation }: any) => {
             <Pressable
               style={styles.moveCalendarStyle}
               onPress={() =>
-                navigation.navigate("Calender", { dayinfo: preMemoList })
+                navigation.navigate("Calender", { dayinfo: searchResult })
               }
             >
               <Text>MyCalender</Text>
@@ -119,9 +98,9 @@ export const MemoList = ({ navigation }: any) => {
       <ScrollView style={{ marginTop: 10 }}>
         <View style={styles.MemoListHeader}>
           <Text style={{ textAlign: "center", marginRight: 10 }}>
-            {preMemoList.length}
+            {searchResult.length}
           </Text>
-          <Pressable onPress={handlesort}>
+          <Pressable>
             <Text style={{ textAlign: "right", marginRight: 10 }}>
               내림차순
             </Text>
@@ -136,8 +115,8 @@ export const MemoList = ({ navigation }: any) => {
           onChangeText={handleSearchChange}
         ></TextInput>
 
-        {preMemoList.length !== 0 ? (
-          preMemoList
+        {searchResult.length !== 0 ? (
+          searchResult
             .slice()
             .reverse()
             .map((el: memos) => (

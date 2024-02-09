@@ -31,7 +31,6 @@ export default function App() {
               component={MemoArea}
               options={{ title: "Welcome" }}
             />
-
             <Stack.Screen
               name="MemoDetail"
               component={MemoDetail}
