@@ -7,6 +7,7 @@ import {
   Pressable,
   Image,
   SafeAreaView,
+  StatusBar,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MemoList } from "./memo_list";
@@ -17,7 +18,6 @@ export const MemoArea: React.FC = ({ navigation }: any) => {
   const [value, setValue] = useState<string>("");
   const [memoTitle, setMemoTitle] = useState<string>("");
   const [memoData, setMemoData] = useState([]);
-  const [memoDate, setMemoDate] = useState("");
   const [reload, setReload] = useState(false);
   const dispatch = useDispatch();
   const handleChange = (text: string) => {
@@ -26,33 +26,25 @@ export const MemoArea: React.FC = ({ navigation }: any) => {
   const handleChangeTitle = (text: string) => {
     setMemoTitle(text);
   };
-  const fetchData = () => {
-    AsyncStorage.getItem("memoList")
-      .then((preMemo) => {
-        const getmemo = preMemo !== null ? JSON.parse(preMemo) : [];
-        setMemoData(getmemo);
-      })
-      .catch((error) => {
-        console.error(" 오류가 발생했습니다:", error);
-      });
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   const handleClick = async () => {
     const now = new Date(); // 현재 시간 가져오기
-    const koreanTime = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+    const year = now.getFullYear().toString().padStart(4, "0");
+    const month = (now.getMonth() + 1).toString().padStart(2, "0");
+    const day = now.getDate().toString().padStart(2, "0");
+    const koreanTime = `${year}.${month}.${day}`;
+
+    const idnumber = String(memoData.length + 1);
+
     const newMemo = {
-      id: now,
+      id: `${idnumber}`,
       title: memoTitle,
       text: value,
-      day: koreanTime.toISOString().split("T")[0],
+      day: koreanTime,
     };
     const preMemo = await AsyncStorage.getItem("memoList");
     let preMemoList = preMemo ? JSON.parse(preMemo) : [];
-    if (value !== "") {
+    if (value || memoTitle !== "") {
       const updatedMemoList: any = [...preMemoList, newMemo];
       await AsyncStorage.setItem("memoList", JSON.stringify(updatedMemoList));
 
@@ -66,10 +58,27 @@ export const MemoArea: React.FC = ({ navigation }: any) => {
   const handleCancel = () => {
     navigation.goBack(); // 이전 화면으로 이동
   };
+  console.log(memoTitle);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
+    <SafeAreaView
+      style={{
+        flex: 1,
+        marginTop: StatusBar.currentHeight || 0,
+        backgroundColor: "#F9EBDE",
+      }}
+    >
       <View style={{ flex: 1, justifyContent: "center", margin: 15 }}>
+        <Image
+          style={{
+            alignItems: "center",
+            marginBottom: 10,
+            resizeMode: "contain",
+            width: 180,
+            alignSelf: "center",
+          }}
+          source={require("./../assets/MyMemoLogo.png")}
+        />
         <View
           style={{
             flexDirection: "row",
@@ -77,10 +86,6 @@ export const MemoArea: React.FC = ({ navigation }: any) => {
             marginBottom: 10,
           }}
         >
-          <Image
-            style={{ alignItems: "center", marginBottom: 10 }}
-            source={require("./../assets/MyMemoLogo.png")}
-          />
           <View style={{ flexDirection: "row" }}>
             <Pressable onPress={handleClick}>
               <Text style={{ marginRight: 10 }}>작성</Text>
@@ -92,14 +97,17 @@ export const MemoArea: React.FC = ({ navigation }: any) => {
         </View>
 
         <TextInput
+          keyboardType="default"
           style={styles.titleArea}
           onChangeText={handleChangeTitle}
           value={memoTitle}
         ></TextInput>
         <TextInput
+          keyboardType="default"
           style={styles.noteArea}
           onChangeText={handleChange}
           value={value}
+          multiline={true}
         ></TextInput>
       </View>
       <View>
@@ -124,7 +132,7 @@ const styles = StyleSheet.create({
     height: 400,
     borderRadius: 10,
   },
-  logoimg: { width: 80 },
+  logoimg: { width: 20 },
   deleteModal: {
     opacity: 1,
   },

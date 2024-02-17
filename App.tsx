@@ -9,8 +9,10 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Provider } from "react-redux";
 import store from "./config";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 export default function App() {
   const Stack = createNativeStackNavigator();
+
   return (
     <NavigationContainer>
       <StatusBar style="auto" />
@@ -21,26 +23,10 @@ export default function App() {
               headerShown: false,
             }}
           >
-            <Stack.Screen
-              name="MemoList"
-              component={MemoList}
-              options={{ title: "Welcome" }}
-            />
-            <Stack.Screen
-              name="Home"
-              component={MemoArea}
-              options={{ title: "Welcome" }}
-            />
-            <Stack.Screen
-              name="MemoDetail"
-              component={MemoDetail}
-              options={{ title: "Welcome" }}
-            />
-            <Stack.Screen
-              name="Calender"
-              component={MyCalender}
-              options={{ title: "Welcome" }}
-            />
+            <Stack.Screen name="MemoList" component={MemoList} />
+            <Stack.Screen name="Home" component={MemoArea} />
+            <Stack.Screen name="MemoDetail" component={MemoDetail} />
+            <Stack.Screen name="Calender" component={MyCalender} />
           </Stack.Navigator>
         </SafeAreaView>
       </Provider>

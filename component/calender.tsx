@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, Pressable, Modal } from "react-native"; // Modal 추가
 import { useRoute } from "@react-navigation/native";
-import { Calendar } from "react-native-big-calendar";
+
+import { Calendar, CalendarProps } from "react-native-big-calendar";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import CalendarHeader from "./calendarHeader";
 const MyCalendar = ({ navigation }: any) => {
-  const [currentMonth, setCurrentMonth] = useState("");
+  const [currentMonth, setCurrentMonth] = useState<string>("");
   const [selectedEvent, setSelectedEvent] = useState<any>(null); // 선택된 이벤트 상태 추가
   const [modalVisible, setModalVisible] = useState(false); // 모달 가시성 상태 추가
   const [reload, setReload] = useState(false); // 새로고침 상태 추가
+  const [currentDate, setCurrentDate] = useState(new Date());
   const route = useRoute();
   const { dayinfo }: any = route.params;
   const events = dayinfo.map((memo: any) => ({
@@ -16,7 +19,6 @@ const MyCalendar = ({ navigation }: any) => {
     end: new Date(memo.day),
     color: "blue",
     id: memo.id,
-
     text: memo.text,
   }));
 
@@ -40,10 +42,17 @@ const MyCalendar = ({ navigation }: any) => {
       setModalVisible(false);
     }
   };
+  const handleVisibleDateChange = (newDate: Date) => {
+    setCurrentDate(newDate);
+    const month = newDate.toLocaleString("default", { month: "long" });
+    setCurrentMonth(month);
+  };
 
   return (
     <>
+      <CalendarHeader currentMonth={currentMonth} />
       <Calendar
+        renderHeaderForMonthView={() => <CalendarHeader />}
         events={events}
         height={600}
         ampm={false}
@@ -59,7 +68,6 @@ const MyCalendar = ({ navigation }: any) => {
           marginTop: 5,
           padding: 10,
         }}
-        renderHeader={undefined}
       />
       <Modal
         visible={modalVisible}
