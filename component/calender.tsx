@@ -1,5 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, Pressable, Modal } from "react-native"; // Modal 추가
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Pressable,
+  Modal,
+  SafeAreaView,
+  StatusBar,
+} from "react-native"; // Modal 추가
 import { useRoute } from "@react-navigation/native";
 
 import { Calendar, CalendarProps } from "react-native-big-calendar";
@@ -14,12 +22,12 @@ const MyCalendar = ({ navigation }: any) => {
   const route = useRoute();
   const { dayinfo }: any = route.params;
   const events = dayinfo.map((memo: any) => ({
+    id: memo.id,
+    text: memo.text,
     title: memo.title,
     start: new Date(memo.day),
     end: new Date(memo.day),
     color: "blue",
-    id: memo.id,
-    text: memo.text,
   }));
 
   useEffect(() => {
@@ -49,7 +57,13 @@ const MyCalendar = ({ navigation }: any) => {
   };
 
   return (
-    <>
+    <SafeAreaView
+      style={{
+        flex: 1,
+        marginTop: StatusBar.currentHeight || 0,
+        backgroundColor: "#F9EBDE",
+      }}
+    >
       <CalendarHeader currentMonth={currentMonth} />
       <Calendar
         renderHeaderForMonthView={() => <CalendarHeader />}
@@ -76,22 +90,70 @@ const MyCalendar = ({ navigation }: any) => {
         onRequestClose={() => setModalVisible(false)}
       >
         <View
-          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+          style={{
+            flex: 2,
+            justifyContent: "space-around",
+            alignItems: "center",
+          }}
         >
           <View
-            style={{ backgroundColor: "white", padding: 20, borderRadius: 10 }}
+            style={{
+              borderRadius: 20,
+              width: 200,
+              height: 250,
+              justifyContent: "space-around",
+              alignItems: "center",
+              backgroundColor: "#F9EBcc",
+              borderWidth: 1,
+              borderColor: "#ccc",
+            }}
           >
-            <Text>{selectedEvent && selectedEvent.title}</Text>
-            <Pressable onPress={() => handleClickMoveMemo()}>
-              <Text>Open</Text>
-            </Pressable>
-            <Pressable onPress={() => setModalVisible(false)}>
-              <Text>Close</Text>
-            </Pressable>
+            <View
+              style={{
+                backgroundColor: "white",
+                justifyContent: "center",
+                alignItems: "center",
+                flex: 1,
+                width: "100%",
+                borderRadius: 20,
+              }}
+            >
+              <Text>{selectedEvent && selectedEvent.title}</Text>
+            </View>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <Pressable
+                style={{
+                  width: 100,
+                  height: 40,
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+                onPress={() => handleClickMoveMemo()}
+              >
+                <Text>Open</Text>
+              </Pressable>
+              <Pressable
+                style={{
+                  width: 100,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  height: 40,
+                }}
+                onPress={() => setModalVisible(false)}
+              >
+                <Text>Close</Text>
+              </Pressable>
+            </View>
           </View>
         </View>
       </Modal>
-    </>
+    </SafeAreaView>
   );
 };
 

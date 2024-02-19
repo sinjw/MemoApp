@@ -8,6 +8,7 @@ import {
   Image,
   SafeAreaView,
   StatusBar,
+  TouchableHighlight,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MemoList } from "./memo_list";
@@ -20,6 +21,7 @@ export const MemoArea: React.FC = ({ navigation }: any) => {
   const [memoData, setMemoData] = useState([]);
   const [reload, setReload] = useState(false);
   const dispatch = useDispatch();
+
   const handleChange = (text: string) => {
     setValue(text);
   };
@@ -33,21 +35,20 @@ export const MemoArea: React.FC = ({ navigation }: any) => {
     const month = (now.getMonth() + 1).toString().padStart(2, "0");
     const day = now.getDate().toString().padStart(2, "0");
     const koreanTime = `${year}.${month}.${day}`;
+    const preMemo = await AsyncStorage.getItem("memoList");
+    let preMemoList = preMemo ? JSON.parse(preMemo) : [];
 
-    const idnumber = String(memoData.length + 1);
-
+    const idnumber = String(now);
     const newMemo = {
       id: `${idnumber}`,
       title: memoTitle,
       text: value,
       day: koreanTime,
     };
-    const preMemo = await AsyncStorage.getItem("memoList");
-    let preMemoList = preMemo ? JSON.parse(preMemo) : [];
     if (value || memoTitle !== "") {
       const updatedMemoList: any = [...preMemoList, newMemo];
       await AsyncStorage.setItem("memoList", JSON.stringify(updatedMemoList));
-
+      setMemoData(updatedMemoList);
       dispatch(setUpdateMemo(newMemo.title));
       setValue("");
       setMemoTitle("");
@@ -82,17 +83,44 @@ export const MemoArea: React.FC = ({ navigation }: any) => {
         <View
           style={{
             flexDirection: "row",
-            justifyContent: "space-between",
+            justifyContent: "flex-end",
             marginBottom: 10,
           }}
         >
-          <View style={{ flexDirection: "row" }}>
-            <Pressable onPress={handleClick}>
-              <Text style={{ marginRight: 10 }}>작성</Text>
-            </Pressable>
-            <Pressable onPress={handleCancel}>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <TouchableHighlight
+              style={{
+                marginRight: 10,
+                width: 45,
+                height: 30,
+                alignItems: "center",
+                borderRadius: 5,
+                justifyContent: "center",
+              }}
+              onPress={handleCancel}
+              underlayColor="#DDDDDD"
+            >
               <Text>취소</Text>
-            </Pressable>
+            </TouchableHighlight>
+            <TouchableHighlight
+              style={{
+                width: 45,
+                height: 30,
+                borderRadius: 5,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+              onPress={handleClick}
+              underlayColor="#DDDDDD"
+            >
+              <Text>작성</Text>
+            </TouchableHighlight>
           </View>
         </View>
 
@@ -118,19 +146,32 @@ export const MemoArea: React.FC = ({ navigation }: any) => {
 };
 const styles = StyleSheet.create({
   titleArea: {
-    borderWidth: 1,
+    backgroundColor: "white",
     height: 50,
     borderRadius: 5,
     fontSize: 18,
     marginBottom: 10,
     textAlign: "center",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 1.84,
+    elevation: 5,
   },
   noteArea: {
-    borderWidth: 1,
     fontSize: 20,
-
+    backgroundColor: "white",
     height: 400,
-    borderRadius: 10,
+    borderRadius: 5,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 1.84,
+    elevation: 5,
   },
   logoimg: { width: 20 },
   deleteModal: {

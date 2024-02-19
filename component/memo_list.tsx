@@ -19,7 +19,7 @@ import { RootState } from "../config";
 import { Dimensions } from "react-native";
 import { MemoDetail } from "./memo_detail";
 interface memos {
-  id: number;
+  id: string;
   title: string;
   text: string;
   day: string;
@@ -29,6 +29,7 @@ export const MemoList = ({ navigation }: any) => {
   // 새로고침 상태 추가
   const memoUpdate = useSelector((state: RootState) => state.upDate);
   const [memoList, setMemoList] = useState([]);
+  const [memoData, setMemoData] = useState([]);
   const [search, setSearch] = useState("");
   const [openButtonMenu, setOpenButtonMenu] = useState<boolean>(false);
   const [searchButton, setSearchButton] = useState<boolean>(false);
@@ -59,6 +60,7 @@ export const MemoList = ({ navigation }: any) => {
         );
       }
     });
+    console.log(filteredMemos);
     return filteredMemos;
   }, [search, memoList, memoUpdate]);
   const handleSearchChange = (e: string) => {
@@ -82,7 +84,7 @@ export const MemoList = ({ navigation }: any) => {
     navigation.navigate("Calender", { dayinfo: searchResult });
     setModalVisible(false);
   };
-
+  console.log(searchResult);
   return (
     <SafeAreaView
       style={{
@@ -226,14 +228,14 @@ export const MemoList = ({ navigation }: any) => {
               </Text>
               <View style={{ justifyContent: "space-around", height: 100 }}>
                 <TouchableHighlight
-                  style={{ borderRadius: 10 }}
+                  style={{ borderRadius: 5 }}
                   onPress={handleClickMoveCalendar}
                   underlayColor="#e3d8cf"
                 >
                   <Text style={styles.modalTextStyle}>Calendar</Text>
                 </TouchableHighlight>
                 <TouchableHighlight
-                  style={{ borderRadius: 10 }}
+                  style={{ borderRadius: 5 }}
                   onPress={handleDeleteAll}
                   underlayColor="#e3d8cf"
                 >
@@ -311,7 +313,7 @@ export const MemoList = ({ navigation }: any) => {
         ) : (
           <>
             <Text style={styles.noteArea}>
-              <Text style={styles.noteText}>Note area</Text>
+              <Text style={styles.noteText}>No memo</Text>
             </Text>
           </>
         )}
@@ -379,8 +381,9 @@ const styles = StyleSheet.create({
     bottom: bottomPosition,
     right: 30,
     borderRadius: 8,
-    shadowColor: "#000",
+
     paddingTop: 5,
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -414,11 +417,12 @@ const styles = StyleSheet.create({
     width: 150,
     fontSize: 15,
     fontWeight: "bold",
+    marginTop: 35,
   },
   modalTextStyle: {
     backgroundColor: "#815854",
     color: "white",
-    borderRadius: 15,
+    borderRadius: 5,
     textAlign: "center",
     width: 150,
     fontSize: 20,
